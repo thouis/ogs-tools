@@ -64,12 +64,17 @@ def get_open_tournaments(group_id):
     tournament_list = [t for t in results(url)]
     return tournament_list
 
-def create_tournament(name, group, lo, hi):
+def create_tournament(name, group, lo, hi, handicap):
     ''' see http://docs.ogs.apiary.io/#reference/tournaments/tournaments/create-tournament '''
+
+    one_week = (datetime.datetime.now() + datetime.timedelta(days=7))
+
     values = {"name": name,
               "description": name,
               "group": group,
               "min_ranking": lo,
+              "board_size": 19,
+              "rules": "japanese",
               "max_ranking": hi,
               "tournament_type": "roundrobin",
               "time_control_parameters": {
@@ -79,20 +84,22 @@ def create_tournament(name, group, lo, hi):
                   "time_increment": 86400
               },
               "exclusivity": "open",
-              "handicap": -1,
+              "handicap": -1 if handicap else 0,
               "exclude_provisional": True,
               "auto_start_on_max": True,
               "settings": {"maximum_players": 10},
-              "time_start": (datetime.datetime.now() + datetime.timedelta(days=7)).isoformat()}
+              "time_start": one_week.strftime("%Y-%m-%dT%H:%M")}
     print (values)
     headers = {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer {}'.format(get_auth.token())
     }
-    data = urlencode(values).encode('UTF-8')
+    data = json.dumps(values).encode('UTF-8')
     request = Request('https://online-go.com/api/v1/tournaments/', data=data, headers=headers)
-    response_body = urlopen(request).read()
-    print("RESPONSE: {}".format(response_body))
+    try:
+        response_body = urlopen(request).read()
+    except Exception as e:
+        print e.read()
 
 if __name__ == "__main__":
     # ranks are > 0: kyu
@@ -123,5 +130,6 @@ if __name__ == "__main__":
         else:
             print('Creating  tournament for {}-{}'.
                   format(kyu_to_name(rlo), kyu_to_name(rhi)))
-            create_tournament("Reddit Round Robin Handicap Correspondence - {}-{}".format(nklo, nkhi),
-                              38, rklo, rkhi)
+            create_tournament("Reddit Round Robin{} Correspondence - {}-{}"
+                              .format(" Handicap" if rlo < 25 else "", nklo, nkhi),
+                              38, rklo, rkhi, rlo < 25)
