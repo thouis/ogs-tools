@@ -6,13 +6,11 @@ import get_auth
 import datetime
 
 try:
-    from urllib import urlencode
     from urllib2 import urlopen
     from urllib2 import HTTPError, URLError, Request
 except ImportError:
     from urllib.request import urlopen, Request
     from urllib.error import HTTPError, URLError
-    from urllib.parse import urlencode
 
 
 def get_page_with_wait(url, wait=1, max_retries=1, current_retry_count=0):
@@ -88,8 +86,8 @@ def create_tournament(name, group, lo, hi, handicap):
               "exclude_provisional": True,
               "auto_start_on_max": True,
               "settings": {"maximum_players": 10},
-              "time_start": one_week.strftime("%Y-%m-%dT%H:%M")}
-    print (values)
+              "time_start": one_week.isoformat() + 'Z'}
+    print(values)
     headers = {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer {}'.format(get_auth.token())
@@ -97,9 +95,11 @@ def create_tournament(name, group, lo, hi, handicap):
     data = json.dumps(values).encode('UTF-8')
     request = Request('https://online-go.com/api/v1/tournaments/', data=data, headers=headers)
     try:
-        response_body = urlopen(request).read()
+        response = urlopen(request)
+        print("success: {}\n".format(response.read()))
     except Exception as e:
-        print e.read()
+        print("failure: {}\n".format(e.read()))
+
 
 if __name__ == "__main__":
     # ranks are > 0: kyu
