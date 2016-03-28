@@ -71,9 +71,9 @@ def create_tournament(name, group, lo, hi, handicap):
               "description": name,
               "group": group,
               "min_ranking": lo,
+              "max_ranking": hi,
               "board_size": 19,
               "rules": "japanese",
-              "max_ranking": hi,
               "tournament_type": "roundrobin",
               "time_control_parameters": {
                   "time_control": "fischer",
@@ -112,7 +112,6 @@ if __name__ == "__main__":
                       (4, -6)]
 
     token = get_auth.token()
-    print ("accces " + token)
 
     open_tourneys = get_open_tournaments(38)
 
